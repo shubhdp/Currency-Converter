@@ -43,18 +43,32 @@ btn.addEventListener("click", (evt) => {
 });
 
 const updateExchangeRate = async () => {
-    let amount = document.querySelector(".amount input");
-    let amtVal = amount.value;
-    if (amtVal === "" || amtVal < 1 || isNaN(amtVal)) {
-        amtVal = 1; 
-        amount.value = "1";
+    try {
+        let amount = document.querySelector(".amount input");
+        let amtVal = amount.value;
+        if (amtVal === "" || amtVal < 1 || isNaN(amtVal)) {
+            amtVal = 1;
+            amount.value = "1";
+        }
+        const URL = `${BASE_URL}/${fromCurr.value.toLowerCase()}.json`;
+        let response = await fetch(URL);
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch exchange rate");
+        }
+
+        let data = await response.json();
+        let rate = data[fromCurr.value.toLowerCase()][toCurr.value.toLowerCase()];
+
+        if (!rate) {
+            throw new Error("Invalid currency selected");
+        }
+
+        let finalAmt = amount.value * rate;
+        msg.innerText = `${amount.value} ${fromCurr.value} = ${finalAmt} ${toCurr.value}`;
+
+    } catch (error) {
+        msg.innerText = "Something went wrong. Please try again.";
+        console.error("Error:", error.message);
     }
-
-    const URL = `${BASE_URL}/${fromCurr.value.toLowerCase()}.json`;
-    let response = await fetch(URL);
-    let data = await response.json();
-    let rate = data[fromCurr.value.toLowerCase()][toCurr.value.toLowerCase()];
-
-    let finalAmt = amount.value * rate;
-    msg.innerText = `${amount.value} ${fromCurr.value} = ${finalAmt} ${toCurr.value}`;
-}
+};
